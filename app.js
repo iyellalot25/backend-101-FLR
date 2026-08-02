@@ -4,7 +4,7 @@ const port = 3000;
 
 app.get("/", (req, res) => {
   res.status(200);
-  res.send({
+  res.json({
     name: "Task API",
     version: "1.0",
     endpoints: ["/tasks"],
@@ -12,7 +12,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.status(200).send({ status: "ok" });
+  res.status(200).json({ status: "ok" });
 });
 
 app.listen(port, () => {
