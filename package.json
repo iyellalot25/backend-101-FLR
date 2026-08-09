@@ -1,5 +1,5 @@
 {
-  "name": "backend-101-flr",
+  "name": "task-api",
   "version": "1.0.0",
   "description": "CRUD API",
   "homepage": "https://github.com/iyellalot25/backend-101-FLR#readme",
@@ -20,5 +20,8 @@
   },
   "dependencies": {
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
   }
 }
