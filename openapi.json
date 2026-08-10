@@ -1,0 +1,444 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Task API",
+    "description": "A RESTful CRUD API for managing tasks built using Express.js.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "General",
+      "description": "General API endpoints"
+    },
+    {
+      "name": "Tasks",
+      "description": "CRUD operations on tasks"
+    },
+    {
+      "name": "Extras",
+      "description": "Additional endpoints"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["General"],
+        "summary": "API Information",
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "example": {
+                  "name": "Task API",
+                  "version": "1.0",
+                  "endpoints": ["/tasks", "/stats", "/reset", "/docs"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/health": {
+      "get": {
+        "tags": ["General"],
+        "summary": "Health Check",
+        "responses": {
+          "200": {
+            "description": "Server Status",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+
+        "summary": "Retrieve all tasks",
+
+        "parameters": [
+          {
+            "name": "done",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter completed tasks"
+          },
+
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search by title"
+          },
+
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Maximum number of tasks"
+          },
+
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Pagination offset"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "List of tasks",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Tasks"],
+
+        "summary": "Create a new task",
+
+        "requestBody": {
+          "required": true,
+
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTask"
+              },
+
+              "example": {
+                "title": "Learn Express"
+              }
+            }
+          }
+        },
+
+        "responses": {
+          "201": {
+            "description": "Task created",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+
+          "400": {
+            "description": "Validation Error",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "tags": ["Tasks"],
+
+        "summary": "Get task by ID",
+
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Task ID"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "description": "Task Found",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+
+          "404": {
+            "description": "Task Not Found",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "put": {
+        "tags": ["Tasks"],
+
+        "summary": "Update a task",
+
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+
+        "requestBody": {
+          "required": true,
+
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTask"
+              },
+
+              "example": {
+                "title": "Finish Assignment",
+                "done": true
+              }
+            }
+          }
+        },
+
+        "responses": {
+          "200": {
+            "description": "Task Updated",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+
+          "400": {
+            "description": "Invalid Input",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+
+          "404": {
+            "description": "Task Not Found",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "delete": {
+        "tags": ["Tasks"],
+
+        "summary": "Delete a task",
+
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+
+        "responses": {
+          "204": {
+            "description": "Task Deleted Successfully"
+          },
+
+          "404": {
+            "description": "Task Not Found",
+
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/stats": {
+      "get": {
+        "tags": ["Extras"],
+
+        "summary": "Task Statistics",
+
+        "responses": {
+          "200": {
+            "description": "Statistics",
+
+            "content": {
+              "application/json": {
+                "example": {
+                  "total": 8,
+                  "done": 3,
+                  "open": 5
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/reset": {
+      "post": {
+        "tags": ["Extras"],
+
+        "summary": "Reset Tasks",
+
+        "responses": {
+          "200": {
+            "description": "Tasks Reset",
+
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Tasks reset successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+
+          "title": {
+            "type": "string",
+            "example": "Learn Express"
+          },
+
+          "done": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+
+      "CreateTask": {
+        "type": "object",
+
+        "required": ["title"],
+
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Build CRUD API"
+          }
+        }
+      },
+
+      "UpdateTask": {
+        "type": "object",
+
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Complete Assignment"
+          },
+
+          "done": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+
+      "Error": {
+        "type": "object",
+
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Task not found"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,6 @@
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const openapi = require("./openapi.json");
 const app = express();
 const port = 3000;
 
@@ -12,6 +14,9 @@ const DUMMY_TASKS = [
 ];
 
 const tasks = [...DUMMY_TASKS];
+
+//Stage 5 - Swagger UI at /docs
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
 
 //Stage 1
 
