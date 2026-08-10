@@ -41,9 +41,10 @@ app.get("/tasks", (req, res) => {
 
 //GET tasks by ID
 app.get("/tasks/:id", (req, res) => {
-  const id = Number(req.params.id);
+  const id = Number(req.params.id); //extract id from req parameter
   const task = tasks.find((t) => t.id === id);
 
+  //validation
   if (!task) {
     return res.status(404).json({ error: `Task ${id} not found` });
   }
@@ -54,4 +55,26 @@ app.get("/tasks/:id", (req, res) => {
 
 app.listen(port, () => {
   console.log(`Task app listening on port: ${port}`);
+});
+
+//Stage 3
+
+//Create task
+app.post("/tasks", (req, res) => {
+  const { title } = req.body; //destructure task title from req body
+
+  //validation
+  if (!title || typeof title !== "string" || title.trim() === "") {
+    return res.status(400).json({
+      error: "Title is required",
+    });
+  }
+
+  const nextId =
+    tasks.length === 0 ? 1 : Math.max(...tasks.map((t) => t.id)) + 1;
+  const newTask = { nextId, title: String(title).trim(), done: false };
+
+  tasks.push(newTask);
+  res.status(201);
+  res.json(newTask);
 });
