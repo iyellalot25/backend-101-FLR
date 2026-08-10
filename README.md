@@ -96,6 +96,6 @@ Connection: keep-alive
 ## Interactive Documentation (Swagger UI)
 
 Explore and test all endpoints visually at **`http://localhost:3000/docs`**.
-![Swagger UI Screenshot](./assets/swagger-ui.png)
+![Swagger UI Screenshot](./assets/swagger.png)
 
 ---
