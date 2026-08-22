@@ -22,8 +22,8 @@ This project provides a complete CRUD API for managing task items, with full val
 1. Clone the repository:
 
 ```bash
-git clone <YOUR_GITHUB_REPO_URL>
-cd <YOUR_REPO_NAME>
+git clone https://github.com/iyellalot25/backend-101-FLR
+cd backend-101-FLR
 
 ```
 
