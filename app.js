@@ -133,7 +133,7 @@ app.delete("/tasks/:id", (req, res) => {
 
   //Delection
   tasks.splice(index, 1);
-  res.status(204).send(`Task ${id} deleted successfully`);
+  res.status(204).end();
 });
 
 //Start listening-----------
