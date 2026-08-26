@@ -1,0 +1,110 @@
+const taskService = require("../services/taskService");
+
+// GET all tasks
+function getAllTasks(req, res) {
+  const result = taskService.getAllTasks();
+
+  res.status(200);
+  res.json(result);
+}
+
+// GET task by ID
+function getTaskById(req, res) {
+  const id = Number(req.params.id);
+
+  const task = taskService.getTaskById(id);
+
+  if (!task) {
+    return res.status(404).json({
+      error: `Task ${id} not found`,
+    });
+  }
+
+  res.status(200);
+  res.json(task);
+}
+
+// CREATE task
+function createTask(req, res) {
+  const { title } = req.body;
+
+  // Validation
+  if (!title || typeof title !== "string" || title.trim() === "") {
+    return res.status(400).json({
+      error: "Title is required",
+    });
+  }
+
+  const newTask = taskService.createTask(title);
+
+  res.status(201);
+  res.json(newTask);
+}
+
+// UPDATE task
+function updateTask(req, res) {
+  const id = Number(req.params.id);
+
+  const task = taskService.getTaskById(id);
+
+  // Validation
+  if (!task) {
+    return res.status(404).json({
+      error: `Task ${id} not found`,
+    });
+  }
+
+  const { title, done } = req.body;
+
+  // Validation
+  if (title === undefined && done === undefined) {
+    return res.status(400).json({
+      error: "Nothing to update",
+    });
+  }
+
+  if (
+    title != undefined &&
+    (typeof title !== "string" || title.trim() === "")
+  ) {
+    return res.status(400).json({
+      error: "Invalid title",
+    });
+  }
+
+  if (done !== undefined && typeof done !== "boolean") {
+    return res.status(400).json({
+      error: "Done must be true or false",
+    });
+  }
+
+  const updatedTask = taskService.updateTask(id, title, done);
+
+  res.status(200);
+  res.json(updatedTask);
+}
+
+// DELETE task
+function deleteTask(req, res) {
+  const id = Number(req.params.id);
+
+  const deleted = taskService.deleteTask(id);
+
+  // Validation
+  if (!deleted) {
+    return res.status(404).json({
+      error: `Task ${id} not found`,
+    });
+  }
+
+  // Preserving your exact response
+  res.status(204).send(`Task ${id} deleted successfully`);
+}
+
+module.exports = {
+  getAllTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+};

@@ -1,3 +1,5 @@
+//NOT IN USE. EVERYTHING IN ONE FILE
+
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const openapi = require("./openapi.json");
