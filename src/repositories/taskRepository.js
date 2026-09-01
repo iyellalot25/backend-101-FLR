@@ -1,5 +1,17 @@
 const { tasks } = require("../data/tasks");
 
+//stats
+function getStats() {
+  const total = tasks.length;
+  const done = tasks.filter((task) => task.done === true).length;
+  const open = tasks.filter((task) => task.done === false).length;
+  return {
+    total,
+    done,
+    open,
+  };
+}
+
 // Get all tasks
 function getAllTasks() {
   return tasks;
@@ -32,6 +44,7 @@ function remove(index) {
 }
 
 module.exports = {
+  getStats,
   getAllTasks,
   findById,
   findIndexById,

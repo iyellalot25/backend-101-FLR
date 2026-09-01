@@ -1,5 +1,10 @@
 const taskRepository = require("../repositories/taskRepository");
 
+//stats
+function getStats() {
+  return taskRepository.getStats();
+}
+
 // Get all tasks - Default parameter for optional parameters
 function getAllTasks(options = {}) {
   let result = [...taskRepository.getAllTasks()];
@@ -74,6 +79,7 @@ function deleteTask(id) {
 }
 
 module.exports = {
+  getStats,
   getAllTasks,
   getTaskById,
   createTask,

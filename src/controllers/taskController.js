@@ -1,5 +1,13 @@
 const taskService = require("../services/taskService");
 
+//stats
+function getStats(req, res) {
+  const stats = taskService.getStats();
+
+  res.status(200);
+  res.json(stats);
+}
+
 // GET all tasks
 function getAllTasks(req, res) {
   const { done, search } = req.query; //destructure options from params
@@ -103,6 +111,7 @@ function deleteTask(req, res) {
 }
 
 module.exports = {
+  getStats,
   getAllTasks,
   getTaskById,
   createTask,

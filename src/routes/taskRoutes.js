@@ -4,6 +4,9 @@ const taskController = require("../controllers/taskController");
 
 const router = express.Router();
 
+//stats
+router.get("/stats", taskController.getStats);
+
 // GET all tasks
 router.get("/tasks", taskController.getAllTasks);
 
