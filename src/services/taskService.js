@@ -3,12 +3,21 @@ const taskRepository = require("../repositories/taskRepository");
 // Get all tasks - Default parameter for optional parameters
 function getAllTasks(options = {}) {
   let result = [...taskRepository.getAllTasks()];
-  const { done } = options; //destructure from options
+  const { done, search } = options; //destructure from options
 
   // Filtering
   if (done !== undefined) {
     const isDone = done === "true"; // converts string "true" to boolean true
     result = result.filter((task) => task.done === isDone);
+  }
+
+  // Search
+  if (search !== undefined) {
+    const searchText = search.toLowerCase();
+
+    result = result.filter((task) =>
+      task.title.toLowerCase().includes(searchText),
+    );
   }
 
   return result;
