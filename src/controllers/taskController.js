@@ -18,8 +18,8 @@ function resetTasks(req, res) {
 
 // GET all tasks
 function getAllTasks(req, res) {
-  const { done, search } = req.query; //destructure options from params
-  const result = taskService.getAllTasks({ done, search }); //Passing parameters inside an object to pass by name and make them flexible and optional
+  const { done, search, limit, offset } = req.query; //destructure options from params
+  const result = taskService.getAllTasks({ done, search, limit, offset }); //Passing parameters inside an object to pass by name and make them flexible and optional
 
   res.status(200);
   res.json(result);

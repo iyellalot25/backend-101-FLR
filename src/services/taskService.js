@@ -13,7 +13,7 @@ function resetTasks() {
 // Get all tasks - Default parameter for optional parameters
 function getAllTasks(options = {}) {
   let result = [...taskRepository.getAllTasks()];
-  const { done, search } = options; //destructure from options
+  const { done, search, limit, offset } = options; //destructure from options
 
   // Filtering
   if (done !== undefined) {
@@ -28,6 +28,21 @@ function getAllTasks(options = {}) {
     result = result.filter((task) =>
       task.title.toLowerCase().includes(searchText),
     );
+  }
+
+  // Pagination
+  const parsedLimit = Number(limit);
+  const parsedOffset = Number(offset);
+
+  if (
+    limit !== undefined &&
+    Number.isInteger(parsedLimit) &&
+    parsedLimit >= 0
+  ) {
+    const start =
+      Number.isInteger(parsedOffset) && parsedOffset >= 0 ? parsedOffset : 0;
+
+    result = result.slice(start, start + parsedLimit);
   }
 
   return result;
