@@ -1,8 +1,17 @@
 const taskRepository = require("../repositories/taskRepository");
 
-// Get all tasks
-function getAllTasks() {
-  return [...taskRepository.getAllTasks()];
+// Get all tasks - Default parameter for optional parameters
+function getAllTasks(options = {}) {
+  let result = [...taskRepository.getAllTasks()];
+  const { done } = options; //destructure from options
+
+  // Filtering
+  if (done !== undefined) {
+    const isDone = done === "true"; // converts string "true" to boolean true
+    result = result.filter((task) => task.done === isDone);
+  }
+
+  return result;
 }
 
 // Get task by ID

@@ -2,7 +2,8 @@ const taskService = require("../services/taskService");
 
 // GET all tasks
 function getAllTasks(req, res) {
-  const result = taskService.getAllTasks();
+  const { done } = req.query; //destructure options from params
+  const result = taskService.getAllTasks({ done }); //Passing parameters inside an object to pass by name and make them flexible and optional
 
   res.status(200);
   res.json(result);
