@@ -44,14 +44,6 @@ function getTaskById(req, res) {
 // CREATE task
 function createTask(req, res) {
   const { title } = req.body;
-
-  // Validation
-  if (!title || typeof title !== "string" || title.trim() === "") {
-    return res.status(400).json({
-      error: "Title is required",
-    });
-  }
-
   const newTask = taskService.createTask(title);
 
   res.status(201);
@@ -61,7 +53,6 @@ function createTask(req, res) {
 // UPDATE task
 function updateTask(req, res) {
   const id = Number(req.params.id);
-
   const task = taskService.getTaskById(id);
 
   // Validation
@@ -72,29 +63,6 @@ function updateTask(req, res) {
   }
 
   const { title, done } = req.body;
-
-  // Validation
-  if (title === undefined && done === undefined) {
-    return res.status(400).json({
-      error: "Nothing to update",
-    });
-  }
-
-  if (
-    title != undefined &&
-    (typeof title !== "string" || title.trim() === "")
-  ) {
-    return res.status(400).json({
-      error: "Invalid title",
-    });
-  }
-
-  if (done !== undefined && typeof done !== "boolean") {
-    return res.status(400).json({
-      error: "Done must be true or false",
-    });
-  }
-
   const updatedTask = taskService.updateTask(id, title, done);
 
   res.status(200);
