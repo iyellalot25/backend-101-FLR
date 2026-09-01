@@ -5,6 +5,11 @@ function getStats() {
   return taskRepository.getStats();
 }
 
+//RESET
+function resetTasks() {
+  return taskRepository.reset();
+}
+
 // Get all tasks - Default parameter for optional parameters
 function getAllTasks(options = {}) {
   let result = [...taskRepository.getAllTasks()];
@@ -80,6 +85,7 @@ function deleteTask(id) {
 
 module.exports = {
   getStats,
+  resetTasks,
   getAllTasks,
   getTaskById,
   createTask,

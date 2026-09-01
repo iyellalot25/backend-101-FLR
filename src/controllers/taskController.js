@@ -8,6 +8,14 @@ function getStats(req, res) {
   res.json(stats);
 }
 
+//RESET
+function resetTasks(req, res) {
+  const tasks = taskService.resetTasks();
+
+  res.status(200);
+  res.json(tasks);
+}
+
 // GET all tasks
 function getAllTasks(req, res) {
   const { done, search } = req.query; //destructure options from params
@@ -106,12 +114,12 @@ function deleteTask(req, res) {
     });
   }
 
-  // Preserving your exact response
-  res.status(204).send(`Task ${id} deleted successfully`);
+  res.status(204).send();
 }
 
 module.exports = {
   getStats,
+  resetTasks,
   getAllTasks,
   getTaskById,
   createTask,

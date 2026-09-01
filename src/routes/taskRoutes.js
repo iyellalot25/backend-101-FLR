@@ -7,6 +7,9 @@ const router = express.Router();
 //stats
 router.get("/stats", taskController.getStats);
 
+//RESET
+router.post("/reset", taskController.resetTasks);
+
 // GET all tasks
 router.get("/tasks", taskController.getAllTasks);
 
