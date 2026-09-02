@@ -1,4 +1,5 @@
 const taskService = require("../services/taskService");
+const ApiError = require("../errors/ApiError");
 
 //stats
 function getStats(req, res) {
@@ -32,9 +33,7 @@ function getTaskById(req, res) {
   const task = taskService.getTaskById(id);
 
   if (!task) {
-    return res.status(404).json({
-      error: `Task ${id} not found`,
-    });
+    throw new ApiError(404, `Task ${id} not found`);
   }
 
   res.status(200);
@@ -57,9 +56,7 @@ function updateTask(req, res) {
 
   // Validation
   if (!task) {
-    return res.status(404).json({
-      error: `Task ${id} not found`,
-    });
+    throw new ApiError(404, `Task ${id} not found`);
   }
 
   const { title, done } = req.body;
@@ -77,9 +74,7 @@ function deleteTask(req, res) {
 
   // Validation
   if (!deleted) {
-    return res.status(404).json({
-      error: `Task ${id} not found`,
-    });
+    throw new ApiError(404, `Task ${id} not found`);
   }
 
   res.status(204).send();

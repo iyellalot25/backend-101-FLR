@@ -1,10 +1,8 @@
 const express = require("express");
-
 const swaggerUi = require("swagger-ui-express");
-
 const openapi = require("../openapi.json");
-
 const taskRoutes = require("./routes/taskRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -35,5 +33,8 @@ app.get("/health", (req, res) => {
 
 // Task routes
 app.use("/", taskRoutes);
+
+// Centralized error handler
+app.use(errorHandler);
 
 module.exports = app;
