@@ -3,6 +3,7 @@ const swaggerUi = require("swagger-ui-express");
 const openapi = require("../openapi.json");
 const taskRoutes = require("./routes/taskRoutes");
 const errorHandler = require("./middleware/errorHandler");
+const notFound = require("./middleware/notFound");
 
 const app = express();
 
@@ -33,6 +34,9 @@ app.get("/health", (req, res) => {
 
 // Task routes
 app.use("/", taskRoutes);
+
+// Custom 404 handler
+app.use(notFound);
 
 // Centralized error handler
 app.use(errorHandler);
