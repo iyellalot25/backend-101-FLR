@@ -1,4 +1,5 @@
 const { tasks } = require("../data/tasks");
+const db = require("./database");
 
 //stats
 function getStats() {
@@ -37,17 +38,33 @@ function reset() {
   return tasks;
 }
 
+//Map tasks done status from 0/1 to booleans
+function mapTask(task) {
+  if (!task) {
+    return task;
+  }
+
+  return {
+    ...task, //Spread(copy existing) task object and then change done attribute
+    done: Boolean(task.done),
+  };
+}
+
 // Get all tasks
 function getAllTasks() {
-  return tasks;
+  const tasks = db.prepare("SELECT * FROM tasks").all();
+
+  return tasks.map(mapTask);
 }
 
 // Find a task by ID
 function findById(id) {
-  return tasks.find((t) => t.id === id);
+  const task = db.prepare("SELECT * FROM tasks WHERE id = ?").get(id);
+
+  return mapTask(task);
 }
 
-// Find the index of a task
+// Find the index of a task (NOT NEEDED ANYMORE)
 function findIndexById(id) {
   return tasks.findIndex((t) => t.id === id);
 }
