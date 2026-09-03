@@ -55,15 +55,9 @@ function getTaskById(id) {
 
 // Create task
 function createTask(title) {
-  const nextId = taskRepository.getNextId();
+  const cleanTitle = String(title).trim();
 
-  const newTask = {
-    id: nextId,
-    title: String(title).trim(),
-    done: false,
-  };
-
-  return taskRepository.create(newTask);
+  return taskRepository.create(cleanTitle);
 }
 
 // Update task

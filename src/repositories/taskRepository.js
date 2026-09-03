@@ -69,15 +69,23 @@ function findIndexById(id) {
   return tasks.findIndex((t) => t.id === id);
 }
 
-// Get the next available ID
+// Get the next available ID (NOT NEEDED SQLite AUTOINCREMENT HANDLES ID GEN)
 function getNextId() {
   return tasks.length === 0 ? 1 : Math.max(...tasks.map((t) => t.id)) + 1;
 }
 
 // Add a task
-function create(task) {
-  tasks.push(task);
-  return task;
+function create(title) {
+  const result = db
+    .prepare(
+      `
+      INSERT INTO tasks (title, done)
+      VALUES (?, ?)
+    `,
+    )
+    .run(title, 0);
+
+  return findById(result.lastInsertRowid);
 }
 
 // Remove a task
