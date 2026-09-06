@@ -52,16 +52,27 @@ function mapTask(task) {
 
 // Get all tasks
 function getAllTasks(options = {}) {
-  const { done } = options;
-  let tasks;
+  const { done, search } = options;
+  let query = "SELECT * FROM tasks";
+
+  const conditions = [];
+  const params = [];
 
   if (done !== undefined) {
-    tasks = db
-      .prepare("SELECT * FROM tasks WHERE done = ?")
-      .all(done === "true" ? 1 : 0);
-  } else {
-    tasks = db.prepare("SELECT * FROM tasks").all();
+    conditions.push("done = ?");
+    params.push(done === "true" ? 1 : 0);
   }
+
+  if (search !== undefined) {
+    conditions.push("title LIKE ?");
+    params.push(`%${search}%`);
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  const tasks = db.prepare(query).all(...params);
 
   return tasks.map(mapTask);
 }
