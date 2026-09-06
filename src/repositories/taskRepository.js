@@ -52,24 +52,43 @@ function mapTask(task) {
 
 // Get all tasks
 function getAllTasks(options = {}) {
-  const { done, search } = options;
-  let query = "SELECT * FROM tasks";
+  const { done, search, limit, offset } = options;
 
+  let query = "SELECT * FROM tasks";
   const conditions = [];
   const params = [];
 
+  // Filter by completion status
   if (done !== undefined) {
     conditions.push("done = ?");
     params.push(done === "true" ? 1 : 0);
   }
 
+  // Search by title
   if (search !== undefined) {
     conditions.push("title LIKE ?");
     params.push(`%${search}%`);
   }
 
+  // Add WHERE conditions
   if (conditions.length > 0) {
     query += " WHERE " + conditions.join(" AND ");
+  }
+
+  //Pagination
+  const parsedLimit = Number(limit);
+  const parsedOffset = Number(offset);
+
+  if (
+    limit !== undefined &&
+    Number.isInteger(parsedLimit) &&
+    parsedLimit >= 0
+  ) {
+    const start =
+      Number.isInteger(parsedOffset) && parsedOffset >= 0 ? parsedOffset : 0;
+
+    query += " LIMIT ? OFFSET ?";
+    params.push(parsedLimit, start);
   }
 
   const tasks = db.prepare(query).all(...params);
