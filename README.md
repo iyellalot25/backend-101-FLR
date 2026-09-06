@@ -1,18 +1,20 @@
-# Task API
+# **Task API**
 
-A lightweight Express.js RESTful CRUD API for managing a to-do list. Built for **Week 2 Assignment 1 of the FlyRank Internship (Backend Track)**.
+A lightweight Express.js RESTful CRUD API for managing a to-do list.
 
-The project demonstrates REST API fundamentals including CRUD operations, request validation, HTTP status codes, Swagger documentation, and additional API features such as filtering, search, pagination, statistics, and resetting the in-memory task store.
+The project demonstrates REST API fundamentals including CRUD operations, request validation, HTTP status codes, Swagger documentation, and additional API features such as filtering, search, pagination, statistics, and resetting the task store.
+
+The application uses **SQLite for persistent storage**, so task data survives server restarts.
 
 ---
 
-## Overview
+## **Overview**
 
 This project provides a RESTful API for creating, reading, updating, and deleting tasks.
 
-The API uses an **in-memory data store**, meaning tasks are stored in the Node.js process memory and are not persisted to a database.
+The API uses **SQLite** as its persistent data store. The database is automatically created and initialized when the application starts.
 
-### Core Features
+### **Core Features**
 
 - Create tasks
 - Retrieve all tasks
@@ -21,29 +23,34 @@ The API uses an **in-memory data store**, meaning tasks are stored in the Node.j
 - Delete tasks
 - Request validation
 - Appropriate HTTP status codes
+- Persistent SQLite storage
 - Interactive Swagger UI documentation
 
-### Additional Features
+### **Additional Features**
 
 - Filter tasks by completion status
 - Search tasks by title
 - Paginate task results
 - View task statistics
 - Reset the task store to its default state
+- Database index on task completion status
+- Task creation and update timestamps
 
 ---
 
-## Tech Stack
+## **Tech Stack**
 
 - Node.js
 - Express.js
 - JavaScript
+- SQLite
+- better-sqlite3
 - Swagger UI
 - OpenAPI
 
 ---
 
-## Project Architecture
+## **Project Architecture**
 
 The application follows a layered architecture:
 
@@ -58,10 +65,10 @@ Services
   ↓
 Repository
   ↓
-In-Memory Data
+SQLite (tasks.db)
 ```
 
-### Layers
+### **Layers**
 
 **Routes**
 
@@ -77,23 +84,25 @@ Contain task-related application logic.
 
 **Repository**
 
-Handles operations on the in-memory task collection.
+Handles database operations using SQLite.
 
-**Data**
+**Database**
 
-Contains the initial dummy task data.
+Stores tasks persistently in `tasks.db`.
 
 ---
 
-## Project Structure
+## **Project Structure**
 
 ```text
 task-api/
+
 │
 ├── server.js
 ├── package.json
 ├── openapi.json
 ├── README.md
+├── tasks.db
 │
 └── src/
     ├── app.js
@@ -102,6 +111,7 @@ task-api/
     │   └── tasks.js
     │
     ├── repositories/
+    │   ├── database.js
     │   └── taskRepository.js
     │
     ├── services/
@@ -116,14 +126,14 @@ task-api/
 
 ---
 
-## Quick Start
+## **Quick Start**
 
-### Prerequisites
+### **Prerequisites**
 
 - Node.js v16 or higher
 - npm
 
-### Setup & Run
+### **Setup & Run**
 
 1. Clone the repository:
 
@@ -150,6 +160,8 @@ The server will run on:
 http://localhost:3000
 ```
 
+The SQLite database is automatically created as `tasks.db` if it does not already exist. The `tasks` table is also created automatically.
+
 Interactive API documentation is available at:
 
 ```text
@@ -158,7 +170,7 @@ http://localhost:3000/docs
 
 ---
 
-# API Endpoints
+# **API Endpoints**
 
 | Method     | Endpoint                  | Description                             | Status Codes        |
 | ---------- | ------------------------- | --------------------------------------- | ------------------- |
@@ -178,7 +190,7 @@ http://localhost:3000/docs
 
 ---
 
-# Task Object
+# **Task Object**
 
 A task has the following structure:
 
@@ -186,19 +198,23 @@ A task has the following structure:
 {
   "id": 1,
   "title": "Buy groceries",
-  "done": false
+  "done": false,
+  "created_at": "2026-09-04 03:00:00",
+  "updated_at": "2026-09-04 03:00:00"
 }
 ```
 
-| Field   | Type    | Description            |
-| ------- | ------- | ---------------------- |
-| `id`    | Number  | Unique task identifier |
-| `title` | String  | Task title             |
-| `done`  | Boolean | Completion status      |
+| Field        | Type    | Description             |
+| ------------ | ------- | ----------------------- |
+| `id`         | Number  | Unique task identifier  |
+| `title`      | String  | Task title              |
+| `done`       | Boolean | Completion status       |
+| `created_at` | String  | Task creation timestamp |
+| `updated_at` | String  | Last update timestamp   |
 
 ---
 
-# Combining Query Parameters
+# **Combining Query Parameters**
 
 The filtering, search, and pagination parameters can be combined.
 
@@ -217,34 +233,42 @@ This:
 
 ---
 
-# In-Memory Storage
+# **SQLite Storage**
 
-This project intentionally uses an in-memory JavaScript array instead of a database.
+This project uses **SQLite** instead of an in-memory JavaScript array.
 
-This keeps the implementation simple and focuses on REST API fundamentals.
+SQLite was chosen because it:
 
-### Important consequence
+- Stores the database in a single file
+- Requires no separate database server
+- Requires minimal setup
+- Persists data across server restarts
 
-Data is **not persistent**.
+The database file is:
 
-For example:
+```text
+tasks.db
+```
 
-1. Start the server.
-2. Create a new task.
-3. Confirm it appears in `GET /tasks`.
-4. Stop the server.
-5. Start the server again.
-6. The newly created task will no longer exist.
+It is automatically created when the application starts if it does not already exist.
 
-The application starts again with the original dummy tasks.
+The `tasks` table is also automatically created, and the database is seeded with three example tasks when the table is empty.
 
-This demonstrates the limitation of in-memory storage: all data is lost when the Node.js process stops.
+Task completion status is stored as `0` or `1` in SQLite and converted to `false` or `true` in the API response.
 
-A production application would use persistent storage such as a database.
+The database also contains an index on the `done` column to support completion-status filtering.
+
+### **Example SQL Query**
+
+```sql
+SELECT * FROM tasks WHERE done = 1;
+```
+
+This query retrieves all completed tasks directly from the SQLite database.
 
 ---
 
-# HTTP Status Codes
+# **HTTP Status Codes**
 
 The API uses HTTP status codes to communicate the result of each request.
 
@@ -258,7 +282,7 @@ The API uses HTTP status codes to communicate the result of each request.
 
 ---
 
-# Interactive Documentation
+# **Interactive Documentation**
 
 Swagger UI provides interactive API documentation.
 
@@ -281,11 +305,10 @@ Swagger can be used to:
 
 ---
 
-# Future Improvements
+# **Future Improvements**
 
 Possible future improvements include:
 
-- Persistent database storage
 - Authentication and authorization
 - User-specific tasks
 - Unit and integration testing
