@@ -3,9 +3,19 @@ const db = require("./database");
 
 //stats
 function getStats() {
-  const total = tasks.length;
-  const done = tasks.filter((task) => task.done === true).length;
-  const open = tasks.filter((task) => task.done === false).length;
+  //Total
+  const total = db.prepare("SELECT COUNT(*) AS count FROM tasks").get().count;
+
+  //Done tasks
+  const done = db
+    .prepare("SELECT COUNT(*) AS count FROM tasks WHERE done = 1")
+    .get().count;
+
+  //Pending tasks
+  const open = db
+    .prepare("SELECT COUNT(*) AS count FROM tasks WHERE done = 0")
+    .get().count;
+
   return {
     total,
     done,
