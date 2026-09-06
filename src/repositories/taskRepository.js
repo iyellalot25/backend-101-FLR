@@ -1,4 +1,3 @@
-const { tasks } = require("../data/tasks");
 const db = require("./database");
 
 //stats
@@ -116,16 +115,6 @@ function findById(id) {
   return mapTask(task);
 }
 
-// Find the index of a task (NOT NEEDED ANYMORE)
-function findIndexById(id) {
-  return tasks.findIndex((t) => t.id === id);
-}
-
-// Get the next available ID (NOT NEEDED SQLite AUTOINCREMENT HANDLES ID GEN)
-function getNextId() {
-  return tasks.length === 0 ? 1 : Math.max(...tasks.map((t) => t.id)) + 1;
-}
-
 // Add a task
 function create(title) {
   const result = db
@@ -171,8 +160,6 @@ module.exports = {
   reset,
   getAllTasks,
   findById,
-  findIndexById,
-  getNextId,
   create,
   update,
   remove,
