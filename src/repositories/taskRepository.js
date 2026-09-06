@@ -88,9 +88,30 @@ function create(title) {
   return findById(result.lastInsertRowid);
 }
 
+// Update a task
+function update(id, title, done) {
+  const result = db
+    .prepare(
+      `
+      UPDATE tasks
+      SET title = ?, done = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
+    )
+    .run(title, done ? 1 : 0, id);
+
+  if (result.changes === 0) {
+    return null;
+  }
+
+  return findById(id);
+}
+
 // Remove a task
-function remove(index) {
-  tasks.splice(index, 1);
+function remove(id) {
+  const result = db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+
+  return result.changes > 0;
 }
 
 module.exports = {
@@ -101,5 +122,6 @@ module.exports = {
   findIndexById,
   getNextId,
   create,
+  update,
   remove,
 };

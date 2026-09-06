@@ -68,28 +68,15 @@ function updateTask(id, title, done) {
     return null;
   }
 
-  if (title !== undefined) {
-    task.title = title.trim();
-  }
+  const updatedTitle = title !== undefined ? title.trim() : task.title;
+  const updatedDone = done !== undefined ? done : task.done;
 
-  if (done !== undefined) {
-    task.done = done;
-  }
-
-  return task;
+  return taskRepository.update(id, updatedTitle, updatedDone);
 }
 
 // Delete task
 function deleteTask(id) {
-  const index = taskRepository.findIndexById(id);
-
-  if (index === -1) {
-    return false;
-  }
-
-  taskRepository.remove(index);
-
-  return true;
+  return taskRepository.remove(id);
 }
 
 module.exports = {
