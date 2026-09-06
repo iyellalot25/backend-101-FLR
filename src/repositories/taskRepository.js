@@ -59,7 +59,7 @@ function mapTask(task) {
 
 // Get all tasks
 function getAllTasks(options = {}) {
-  const { done, search, limit, offset } = options;
+  const { done, search, limit, offset, sort, order } = options;
 
   let query = "SELECT * FROM tasks";
   const conditions = [];
@@ -80,6 +80,12 @@ function getAllTasks(options = {}) {
   // Add WHERE conditions
   if (conditions.length > 0) {
     query += " WHERE " + conditions.join(" AND ");
+  }
+
+  // Sorting
+  if (sort === "title") {
+    const sortOrder = order === "desc" ? "DESC" : "ASC";
+    query += ` ORDER BY title ${sortOrder}`;
   }
 
   //Pagination

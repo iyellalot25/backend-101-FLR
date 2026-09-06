@@ -12,13 +12,15 @@ function resetTasks() {
 
 // Get all tasks - Default parameter for optional parameters
 function getAllTasks(options = {}) {
-  const { done, search, limit, offset } = options; //destructure from options
+  const { done, search, limit, offset, sort, order } = options; //destructure from options
 
   return taskRepository.getAllTasks({
     done,
     search,
     limit,
     offset,
+    sort,
+    order,
   });
 }
 
