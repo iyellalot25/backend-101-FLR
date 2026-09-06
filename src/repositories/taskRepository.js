@@ -25,27 +25,24 @@ function getStats() {
 
 //RESET
 function reset() {
-  tasks.length = 0;
+  const resetDatabase = db.transaction(() => {
+    db.prepare("DELETE FROM tasks").run();
+    //Reset the auto increment counter
+    db.prepare("DELETE FROM sqlite_sequence WHERE name = 'tasks'").run();
 
-  tasks.push(
-    {
-      id: 1,
-      title: "Buy groceries",
-      done: false,
-    },
-    {
-      id: 2,
-      title: "Walk the dog",
-      done: true,
-    },
-    {
-      id: 3,
-      title: "Read a book",
-      done: false,
-    },
-  );
+    const insert = db.prepare(`
+      INSERT INTO tasks (title, done)
+      VALUES (?, ?)
+    `);
 
-  return tasks;
+    insert.run("Buy groceries", 0);
+    insert.run("Walk the dog", 1);
+    insert.run("Read a book", 0);
+  });
+
+  resetDatabase();
+
+  return getAllTasks();
 }
 
 //Map tasks done status from 0/1 to booleans
