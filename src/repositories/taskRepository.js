@@ -51,8 +51,17 @@ function mapTask(task) {
 }
 
 // Get all tasks
-function getAllTasks() {
-  const tasks = db.prepare("SELECT * FROM tasks").all();
+function getAllTasks(options = {}) {
+  const { done } = options;
+  let tasks;
+
+  if (done !== undefined) {
+    tasks = db
+      .prepare("SELECT * FROM tasks WHERE done = ?")
+      .all(done === "true" ? 1 : 0);
+  } else {
+    tasks = db.prepare("SELECT * FROM tasks").all();
+  }
 
   return tasks.map(mapTask);
 }
