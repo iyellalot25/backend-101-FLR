@@ -2,7 +2,7 @@
 
 A lightweight Express.js RESTful CRUD API for managing a to-do list.
 
-The project demonstrates REST API fundamentals including CRUD operations, request validation, HTTP status codes, Swagger documentation, and additional API features such as filtering, search, pagination, statistics, and resetting the task store.
+The project demonstrates REST API fundamentals including CRUD operations, request validation, HTTP status codes, Swagger documentation, and additional API features such as filtering, search, sorting, pagination, statistics, and resetting the task store.
 
 The application uses **SQLite for persistent storage**, so task data survives server restarts.
 
@@ -30,11 +30,13 @@ The API uses **SQLite** as its persistent data store. The database is automatica
 
 - Filter tasks by completion status
 - Search tasks by title
+- Sort tasks alphabetically
 - Paginate task results
 - View task statistics
 - Reset the task store to its default state
 - Database index on task completion status
 - Task creation and update timestamps
+- SQLite transactions for multi-step database operations
 
 ---
 
@@ -96,19 +98,23 @@ Stores tasks persistently in `tasks.db`.
 
 ```text
 task-api/
-
 │
 ├── server.js
 ├── package.json
 ├── openapi.json
 ├── README.md
-├── tasks.db
+├── .gitignore
 │
 └── src/
     ├── app.js
     │
-    ├── data/
-    │   └── tasks.js
+    ├── errors/
+    │   └── ApiError.js
+    │
+    ├── middleware/
+    │   ├── validation.js
+    │   ├── notFound.js
+    │   └── errorHandler.js
     │
     ├── repositories/
     │   ├── database.js
@@ -123,6 +129,8 @@ task-api/
     └── routes/
         └── taskRoutes.js
 ```
+
+The `tasks.db` file is created automatically at runtime and is excluded from Git.
 
 ---
 
@@ -160,7 +168,7 @@ The server will run on:
 http://localhost:3000
 ```
 
-The SQLite database is automatically created as `tasks.db` if it does not already exist. The `tasks` table is also created automatically.
+The SQLite database is automatically created as `tasks.db` if it does not already exist. The `tasks` table is also created automatically and seeded with three example tasks when empty.
 
 Interactive API documentation is available at:
 
@@ -180,6 +188,7 @@ http://localhost:3000/docs
 | **GET**    | `/tasks?done=true`        | Filter completed tasks                  | `200`               |
 | **GET**    | `/tasks?done=false`       | Filter incomplete tasks                 | `200`               |
 | **GET**    | `/tasks?search=book`      | Search tasks by title                   | `200`               |
+| **GET**    | `/tasks?sort=title`       | Sort tasks alphabetically               | `200`               |
 | **GET**    | `/tasks?limit=2&offset=0` | Paginate task results                   | `200`               |
 | **GET**    | `/tasks/:id`              | Retrieve a specific task                | `200`, `404`        |
 | **POST**   | `/tasks`                  | Create a new task                       | `201`, `400`        |
@@ -216,20 +225,21 @@ A task has the following structure:
 
 # **Combining Query Parameters**
 
-The filtering, search, and pagination parameters can be combined.
+The filtering, search, sorting, and pagination parameters can be combined.
 
 Example:
 
 ```http
-GET /tasks?done=false&search=book&limit=2&offset=0
+GET /tasks?done=false&search=book&sort=title&limit=2&offset=0
 ```
 
 This:
 
 1. Selects incomplete tasks
 2. Searches their titles for `book`
-3. Returns at most 2 results
-4. Starts from offset 0
+3. Sorts the results alphabetically
+4. Returns at most 2 results
+5. Starts from offset 0
 
 ---
 
@@ -257,6 +267,10 @@ The `tasks` table is also automatically created, and the database is seeded with
 Task completion status is stored as `0` or `1` in SQLite and converted to `false` or `true` in the API response.
 
 The database also contains an index on the `done` column to support completion-status filtering.
+
+The additional filtering, search, sorting, pagination, statistics, and reset features are handled using SQL queries.
+
+Multi-step database operations such as seeding and resetting tasks use SQLite transactions.
 
 ### **Example SQL Query**
 
@@ -315,5 +329,3 @@ Possible future improvements include:
 - Better request validation
 - API versioning
 - Deployment to a cloud platform
-
----
