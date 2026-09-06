@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Task API",
-    "description": "A RESTful CRUD API for managing tasks built using Express.js. Includes filtering, search, pagination, task statistics, and reset functionality.",
+    "description": "A RESTful CRUD API for managing tasks built using Express.js. Includes filtering, search, sorting, pagination, task statistics, and reset functionality.",
     "version": "1.0.0"
   },
   "servers": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Extras",
-      "description": "Filtering, search, pagination, statistics, and reset functionality"
+      "description": "Filtering, search, sorting, pagination, statistics, and reset functionality"
     }
   ],
   "paths": {
@@ -47,7 +47,6 @@
         }
       }
     },
-
     "/health": {
       "get": {
         "tags": ["General"],
@@ -67,12 +66,11 @@
         }
       }
     },
-
     "/tasks": {
       "get": {
         "tags": ["Tasks"],
         "summary": "Retrieve tasks",
-        "description": "Returns all tasks. Results can optionally be filtered, searched, and paginated using query parameters.",
+        "description": "Returns all tasks. Results can optionally be filtered, searched, sorted, and paginated using query parameters.",
         "parameters": [
           {
             "name": "done",
@@ -102,6 +100,29 @@
               "type": "string"
             },
             "example": "book"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort tasks by title.",
+            "schema": {
+              "type": "string",
+              "enum": ["title"]
+            },
+            "example": "title"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "description": "Sort order when sorting by title.",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
+            },
+            "example": "asc"
           },
           {
             "name": "limit",
@@ -142,12 +163,16 @@
                   {
                     "id": 1,
                     "title": "Buy groceries",
-                    "done": false
+                    "done": false,
+                    "created_at": "2026-09-04 03:00:00",
+                    "updated_at": "2026-09-04 03:00:00"
                   },
                   {
                     "id": 2,
                     "title": "Walk the dog",
-                    "done": true
+                    "done": true,
+                    "created_at": "2026-09-04 03:00:00",
+                    "updated_at": "2026-09-04 03:00:00"
                   }
                 ]
               }
@@ -155,7 +180,6 @@
           }
         }
       },
-
       "post": {
         "tags": ["Tasks"],
         "summary": "Create a new task",
@@ -184,7 +208,9 @@
                 "example": {
                   "id": 4,
                   "title": "Learn Express",
-                  "done": false
+                  "done": false,
+                  "created_at": "2026-09-04 03:00:00",
+                  "updated_at": "2026-09-04 03:00:00"
                 }
               }
             }
@@ -205,7 +231,6 @@
         }
       }
     },
-
     "/tasks/{id}": {
       "get": {
         "tags": ["Tasks"],
@@ -227,7 +252,9 @@
                 "example": {
                   "id": 1,
                   "title": "Buy groceries",
-                  "done": false
+                  "done": false,
+                  "created_at": "2026-09-04 03:00:00",
+                  "updated_at": "2026-09-04 03:00:00"
                 }
               }
             }
@@ -240,14 +267,13 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Task 99 not found"
+                  "error": "Task not found"
                 }
               }
             }
           }
         }
       },
-
       "put": {
         "tags": ["Tasks"],
         "summary": "Update a task",
@@ -299,7 +325,9 @@
                 "example": {
                   "id": 1,
                   "title": "Finish Assignment",
-                  "done": true
+                  "done": true,
+                  "created_at": "2026-09-04 03:00:00",
+                  "updated_at": "2026-09-04 03:15:00"
                 }
               }
             }
@@ -339,14 +367,13 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Task 99 not found"
+                  "error": "Task not found"
                 }
               }
             }
           }
         }
       },
-
       "delete": {
         "tags": ["Tasks"],
         "summary": "Delete a task",
@@ -368,7 +395,7 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Task 99 not found"
+                  "error": "Task not found"
                 }
               }
             }
@@ -376,7 +403,6 @@
         }
       }
     },
-
     "/stats": {
       "get": {
         "tags": ["Extras"],
@@ -401,12 +427,11 @@
         }
       }
     },
-
     "/reset": {
       "post": {
         "tags": ["Extras"],
         "summary": "Reset tasks",
-        "description": "Removes the current in-memory tasks and restores the original three dummy tasks.",
+        "description": "Removes the current tasks from SQLite and restores the default three tasks.",
         "responses": {
           "200": {
             "description": "Tasks reset successfully",
@@ -422,17 +447,23 @@
                   {
                     "id": 1,
                     "title": "Buy groceries",
-                    "done": false
+                    "done": false,
+                    "created_at": "2026-09-04 03:00:00",
+                    "updated_at": "2026-09-04 03:00:00"
                   },
                   {
                     "id": 2,
                     "title": "Walk the dog",
-                    "done": true
+                    "done": true,
+                    "created_at": "2026-09-04 03:00:00",
+                    "updated_at": "2026-09-04 03:00:00"
                   },
                   {
                     "id": 3,
                     "title": "Read a book",
-                    "done": false
+                    "done": false,
+                    "created_at": "2026-09-04 03:00:00",
+                    "updated_at": "2026-09-04 03:00:00"
                   }
                 ]
               }
@@ -442,7 +473,6 @@
       }
     }
   },
-
   "components": {
     "parameters": {
       "TaskId": {
@@ -457,11 +487,16 @@
         "example": 1
       }
     },
-
     "schemas": {
       "Task": {
         "type": "object",
-        "required": ["id", "title", "done"],
+        "required": [
+          "id",
+          "title",
+          "done",
+          "created_at",
+          "updated_at"
+        ],
         "properties": {
           "id": {
             "type": "integer",
@@ -476,10 +511,19 @@
           "done": {
             "type": "boolean",
             "example": false
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Timestamp when the task was created.",
+            "example": "2026-09-04 03:00:00"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Timestamp when the task was last updated.",
+            "example": "2026-09-04 03:00:00"
           }
         }
       },
-
       "CreateTask": {
         "type": "object",
         "required": ["title"],
@@ -492,7 +536,6 @@
           }
         }
       },
-
       "UpdateTask": {
         "type": "object",
         "description": "At least one of title or done must be provided.",
@@ -508,7 +551,6 @@
           }
         }
       },
-
       "Stats": {
         "type": "object",
         "required": ["total", "done", "open"],
@@ -533,14 +575,13 @@
           }
         }
       },
-
       "Error": {
         "type": "object",
         "required": ["error"],
         "properties": {
           "error": {
             "type": "string",
-            "example": "Task 99 not found"
+            "example": "Task not found"
           }
         }
       }
