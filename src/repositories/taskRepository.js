@@ -1,63 +1,53 @@
-const db = require("./database");
+const { pool } = require("./database");
 
-//stats
-function getStats() {
-  //Total
-  const total = db.prepare("SELECT COUNT(*) AS count FROM tasks").get().count;
+// Stats
+async function getStats() {
+  const totalResult = await pool.query("SELECT COUNT(*) AS count FROM tasks");
 
-  //Done tasks
-  const done = db
-    .prepare("SELECT COUNT(*) AS count FROM tasks WHERE done = 1")
-    .get().count;
+  const doneResult = await pool.query(
+    "SELECT COUNT(*) AS count FROM tasks WHERE done = TRUE",
+  );
 
-  //Pending tasks
-  const open = db
-    .prepare("SELECT COUNT(*) AS count FROM tasks WHERE done = 0")
-    .get().count;
+  const openResult = await pool.query(
+    "SELECT COUNT(*) AS count FROM tasks WHERE done = FALSE",
+  );
 
   return {
-    total,
-    done,
-    open,
+    total: Number(totalResult.rows[0].count),
+    done: Number(doneResult.rows[0].count),
+    open: Number(openResult.rows[0].count),
   };
 }
 
-//RESET
-function reset() {
-  const resetDatabase = db.transaction(() => {
-    db.prepare("DELETE FROM tasks").run();
-    //Reset the auto increment counter
-    db.prepare("DELETE FROM sqlite_sequence WHERE name = 'tasks'").run();
+// RESET
+async function reset() {
+  await pool.query("DELETE FROM tasks");
 
-    const insert = db.prepare(`
-      INSERT INTO tasks (title, done)
-      VALUES (?, ?)
-    `);
-
-    insert.run("Buy groceries", 0);
-    insert.run("Walk the dog", 1);
-    insert.run("Read a book", 0);
-  });
-
-  resetDatabase();
+  await pool.query(`
+    INSERT INTO tasks (title, done)
+    VALUES
+      ('Buy groceries', FALSE),
+      ('Walk the dog', TRUE),
+      ('Read a book', FALSE)
+  `);
 
   return getAllTasks();
 }
 
-//Map tasks done status from 0/1 to booleans
+// Map PostgreSQL task to API response
 function mapTask(task) {
   if (!task) {
     return task;
   }
 
   return {
-    ...task, //Spread(copy existing) task object and then change done attribute
+    ...task, //Spread the existing object
     done: Boolean(task.done),
   };
 }
 
 // Get all tasks
-function getAllTasks(options = {}) {
+async function getAllTasks(options = {}) {
   const { done, search, limit, offset, sort, order } = options;
 
   let query = "SELECT * FROM tasks";
@@ -66,14 +56,14 @@ function getAllTasks(options = {}) {
 
   // Filter by completion status
   if (done !== undefined) {
-    conditions.push("done = ?");
-    params.push(done === "true" ? 1 : 0);
+    params.push(done === "true");
+    conditions.push(`done = $${params.length}`);
   }
 
   // Search by title
   if (search !== undefined) {
-    conditions.push("title LIKE ?");
     params.push(`%${search}%`);
+    conditions.push(`title ILIKE $${params.length}`);
   }
 
   // Add WHERE conditions
@@ -87,7 +77,7 @@ function getAllTasks(options = {}) {
     query += ` ORDER BY title ${sortOrder}`;
   }
 
-  //Pagination
+  // Pagination
   const parsedLimit = Number(limit);
   const parsedOffset = Number(offset);
 
@@ -99,60 +89,65 @@ function getAllTasks(options = {}) {
     const start =
       Number.isInteger(parsedOffset) && parsedOffset >= 0 ? parsedOffset : 0;
 
-    query += " LIMIT ? OFFSET ?";
-    params.push(parsedLimit, start);
+    params.push(parsedLimit);
+    query += ` LIMIT $${params.length}`;
+
+    params.push(start);
+    query += ` OFFSET $${params.length}`;
   }
 
-  const tasks = db.prepare(query).all(...params);
+  const result = await pool.query(query, params);
 
-  return tasks.map(mapTask);
+  return result.rows.map(mapTask);
 }
 
 // Find a task by ID
-function findById(id) {
-  const task = db.prepare("SELECT * FROM tasks WHERE id = ?").get(id);
+async function findById(id) {
+  const result = await pool.query("SELECT * FROM tasks WHERE id = $1", [id]);
 
-  return mapTask(task);
+  return mapTask(result.rows[0]);
 }
 
 // Add a task
-function create(title) {
-  const result = db
-    .prepare(
-      `
+async function create(title) {
+  const result = await pool.query(
+    `
       INSERT INTO tasks (title, done)
-      VALUES (?, ?)
+      VALUES ($1, $2)
+      RETURNING *
     `,
-    )
-    .run(title, 0);
+    [title, false],
+  );
 
-  return findById(result.lastInsertRowid);
+  return mapTask(result.rows[0]);
 }
 
 // Update a task
-function update(id, title, done) {
-  const result = db
-    .prepare(
-      `
+async function update(id, title, done) {
+  const result = await pool.query(
+    `
       UPDATE tasks
-      SET title = ?, done = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
+      SET title = $1,
+          done = $2,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING *
     `,
-    )
-    .run(title, done ? 1 : 0, id);
+    [title, done, id],
+  );
 
-  if (result.changes === 0) {
+  if (result.rows.length === 0) {
     return null;
   }
 
-  return findById(id);
+  return mapTask(result.rows[0]);
 }
 
 // Remove a task
-function remove(id) {
-  const result = db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+async function remove(id) {
+  const result = await pool.query("DELETE FROM tasks WHERE id = $1", [id]);
 
-  return result.changes > 0;
+  return result.rowCount > 0;
 }
 
 module.exports = {

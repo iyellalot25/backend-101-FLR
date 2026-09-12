@@ -2,89 +2,112 @@ const taskService = require("../services/taskService");
 const ApiError = require("../errors/ApiError");
 
 //stats
-function getStats(req, res) {
-  const stats = taskService.getStats();
+async function getStats(req, res, next) {
+  try {
+    const stats = await taskService.getStats();
 
-  res.status(200);
-  res.json(stats);
+    res.status(200).json(stats);
+  } catch (error) {
+    next(error);
+  }
 }
 
 //RESET
-function resetTasks(req, res) {
-  const tasks = taskService.resetTasks();
+async function resetTasks(req, res, next) {
+  try {
+    const tasks = await taskService.resetTasks();
 
-  res.status(200);
-  res.json(tasks);
+    res.status(200).json(tasks);
+  } catch (error) {
+    next(error);
+  }
 }
 
 // GET all tasks
-function getAllTasks(req, res) {
-  const { done, search, limit, offset, sort, order } = req.query; //destructure options from params
-  const result = taskService.getAllTasks({
-    done,
-    search,
-    limit,
-    offset,
-    sort,
-    order,
-  }); //Passing parameters inside an object to pass by name and make them flexible and optional
+async function getAllTasks(req, res, next) {
+  try {
+    const { done, search, limit, offset, sort, order } = req.query;
 
-  res.status(200);
-  res.json(result);
+    const tasks = await taskService.getAllTasks({
+      done,
+      search,
+      limit,
+      offset,
+      sort,
+      order,
+    });
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    next(error);
+  }
 }
 
 // GET task by ID
-function getTaskById(req, res) {
-  const id = Number(req.params.id);
+async function getTaskById(req, res, next) {
+  try {
+    const id = Number(req.params.id);
 
-  const task = taskService.getTaskById(id);
+    const task = await taskService.getTaskById(id);
 
-  if (!task) {
-    throw new ApiError(404, `Task ${id} not found`);
+    if (!task) {
+      throw new ApiError(404, `Task ${id} not found`);
+    }
+
+    res.status(200).json(task);
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200);
-  res.json(task);
 }
 
 // CREATE task
-function createTask(req, res) {
-  const { title } = req.body;
-  const newTask = taskService.createTask(title);
+async function createTask(req, res, next) {
+  try {
+    const { title } = req.body;
+    const newTask = await taskService.createTask(title);
 
-  res.status(201);
-  res.json(newTask);
+    res.status(201).json(newTask);
+  } catch (error) {
+    next(error);
+  }
 }
 
 // UPDATE task
-function updateTask(req, res) {
-  const id = Number(req.params.id);
-  const task = taskService.getTaskById(id);
+async function updateTask(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const task = await taskService.getTaskById(id);
 
-  // Validation
-  if (!task) {
-    throw new ApiError(404, `Task ${id} not found`);
+    // Validation
+    if (!task) {
+      throw new ApiError(404, `Task ${id} not found`);
+    }
+
+    const { title, done } = req.body;
+    const updatedTask = await taskService.updateTask(id, title, done);
+
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    next(error);
   }
-
-  const { title, done } = req.body;
-  const updatedTask = taskService.updateTask(id, title, done);
-
-  res.status(200);
-  res.json(updatedTask);
 }
 
 // DELETE task
-function deleteTask(req, res) {
-  const id = Number(req.params.id);
+async function deleteTask(req, res, next) {
+  try {
+    const id = Number(req.params.id);
 
-  const deleted = taskService.deleteTask(id);
+    const deleted = await taskService.deleteTask(id);
 
-  // Validation
-  if (!deleted) {
-    throw new ApiError(404, `Task ${id} not found`);
+    // Validation
+    if (!deleted) {
+      throw new ApiError(404, `Task ${id} not found`);
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
   }
-
-  res.status(204).send();
 }
 
 module.exports = {

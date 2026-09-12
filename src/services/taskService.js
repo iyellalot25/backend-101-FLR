@@ -1,20 +1,20 @@
 const taskRepository = require("../repositories/taskRepository");
 
 //stats
-function getStats() {
-  return taskRepository.getStats();
+async function getStats() {
+  return await taskRepository.getStats();
 }
 
 //RESET
-function resetTasks() {
-  return taskRepository.reset();
+async function resetTasks() {
+  return await taskRepository.reset();
 }
 
 // Get all tasks - Default parameter for optional parameters
-function getAllTasks(options = {}) {
+async function getAllTasks(options = {}) {
   const { done, search, limit, offset, sort, order } = options; //destructure from options
 
-  return taskRepository.getAllTasks({
+  return await taskRepository.getAllTasks({
     done,
     search,
     limit,
@@ -25,34 +25,34 @@ function getAllTasks(options = {}) {
 }
 
 // Get task by ID
-function getTaskById(id) {
-  return taskRepository.findById(id);
+async function getTaskById(id) {
+  return await taskRepository.findById(id);
 }
 
 // Create task
-function createTask(title) {
+async function createTask(title) {
   const cleanTitle = String(title).trim();
 
-  return taskRepository.create(cleanTitle);
+  return await taskRepository.create(cleanTitle);
 }
 
 // Update task
-function updateTask(id, title, done) {
-  const task = taskRepository.findById(id);
+async function updateTask(id, title, done) {
+  const task = await taskRepository.findById(id);
 
   if (!task) {
     return null;
   }
 
-  const updatedTitle = title !== undefined ? title.trim() : task.title;
+  const updatedTitle = title !== undefined ? String(title).trim() : task.title;
   const updatedDone = done !== undefined ? done : task.done;
 
-  return taskRepository.update(id, updatedTitle, updatedDone);
+  return await taskRepository.update(id, updatedTitle, updatedDone);
 }
 
 // Delete task
-function deleteTask(id) {
-  return taskRepository.remove(id);
+async function deleteTask(id) {
+  return await taskRepository.remove(id);
 }
 
 module.exports = {
