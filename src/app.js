@@ -4,6 +4,7 @@ const openapi = require("../openapi.json");
 const taskRoutes = require("./routes/taskRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const notFound = require("./middleware/notFound");
+const { pool } = require("./repositories/database");
 
 const app = express();
 
@@ -26,10 +27,21 @@ app.get("/", (req, res) => {
 });
 
 // Health Check
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-  });
+// Health Check
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+
+    res.status(200).json({
+      status: "ok",
+      db: "ok",
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: "error",
+      db: "error",
+    });
+  }
 });
 
 // Task routes
