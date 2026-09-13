@@ -1,8 +1,18 @@
 const { Pool } = require("pg");
+const { createClient } = require("redis");
 
-// Create/open pool
+// Create/open PostgreSQL pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+});
+
+// Create Redis client
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
+
+redisClient.on("error", (error) => {
+  console.error("Redis error:", error);
 });
 
 // Create the table on the first run - safe to call every time - IF NOT EXISTS
@@ -37,7 +47,17 @@ async function initializeDatabase() {
   }
 }
 
+// Connect to Redis and verify it responds
+async function initializeRedis() {
+  await redisClient.connect();
+
+  const response = await redisClient.ping();
+  console.log(`Redis: ${response}`);
+}
+
 module.exports = {
   pool,
+  redisClient,
   initializeDatabase,
+  initializeRedis,
 };

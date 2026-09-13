@@ -1,13 +1,17 @@
 require("dotenv").config();
 
 const app = require("./src/app");
-const { initializeDatabase } = require("./src/repositories/database");
+const {
+  initializeDatabase,
+  initializeRedis,
+} = require("./src/repositories/database");
 
 const port = 3000;
 
 async function startServer() {
   try {
     await initializeDatabase();
+    await initializeRedis();
 
     app.listen(port, () => {
       console.log(`Task app listening on port: ${port}`);
