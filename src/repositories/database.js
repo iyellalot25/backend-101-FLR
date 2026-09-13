@@ -1,11 +1,11 @@
 const { Pool } = require("pg");
 
-//Create/open pool
+// Create/open pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-//Create the table on the first run - safe to call everytime - IF NOT EXISTS
+// Create the table on the first run - safe to call every time - IF NOT EXISTS
 async function initializeDatabase() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tasks (
@@ -17,8 +17,15 @@ async function initializeDatabase() {
     )
   `);
 
-  const countResult = await pool.query("SELECT COUNT(*) AS count FROM tasks"); //seed protection prevents duplication
+  // Index the column used by the completion-status filter
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_tasks_done
+    ON tasks(done)
+  `);
 
+  const countResult = await pool.query("SELECT COUNT(*) AS count FROM tasks");
+
+  // Seed protection prevents duplication
   if (Number(countResult.rows[0].count) === 0) {
     await pool.query(`
       INSERT INTO tasks (title, done)
