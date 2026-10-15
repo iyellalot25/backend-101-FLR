@@ -5,6 +5,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const notFound = require("./middleware/notFound");
 const { pool } = require("./repositories/database");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -27,7 +28,6 @@ app.get("/", (req, res) => {
 });
 
 // Health Check
-// Health Check
 app.get("/health", async (req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -43,6 +43,9 @@ app.get("/health", async (req, res) => {
     });
   }
 });
+
+// Auth routes
+app.use("/auth", authRoutes);
 
 // Task routes
 app.use("/", taskRoutes);
