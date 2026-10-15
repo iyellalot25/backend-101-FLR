@@ -51,6 +51,9 @@ The API uses **PostgreSQL** as its persistent data store. PostgreSQL runs as a D
 - Docker Compose
 - Swagger UI
 - OpenAPI
+- Supabase Auth
+- `@supabase/supabase-js`
+- JWT Bearer Authentication
 
 ---
 
@@ -114,13 +117,17 @@ task-api/
 └── src/
     ├── app.js
     │
+    ├── config/
+    │   └── supabase.js
+    │
     ├── errors/
     │   └── ApiError.js
     │
     ├── middleware/
     │   ├── validation.js
     │   ├── notFound.js
-    │   └── errorHandler.js
+    │   ├── errorHandler.js
+    │   └── authenticateToken.js
     │
     ├── repositories/
     │   ├── database.js
@@ -133,7 +140,10 @@ task-api/
     │   └── taskController.js
     │
     └── routes/
-        └── taskRoutes.js
+        ├── taskRoutes.js
+        ├── authRoutes.js
+        ├── publicRoutes.js
+        └── protectedRoutes.js
 ```
 
 The `.env` file is excluded from Git and is used for local database configuration.
@@ -208,46 +218,155 @@ The named database volume is preserved, so task data survives container recreati
 
 ---
 
-## **Environment Variables**
+## Environment Variables
 
-The project uses a `.env` file for local environment configuration.
+The project uses a `.env` file for local environment configuration. Create it from the committed template:
 
-Example:
+```bash
+cp .env.example .env
+```
+
+Configure the following variables in `.env`:
 
 ```env
-DATABASE_URL=postgres://postgres:dev@localhost:5432/tasks
+PORT=3000
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password_here
+POSTGRES_DB=tasks
+
+DATABASE_URL=postgres://postgres:your_password_here@localhost:5432/tasks
+REDIS_URL=redis://localhost:6379
+
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
 ```
 
-The `.env` file is ignored by Git.
+Replace the Supabase placeholders with the URL and supported public client key from your Supabase project.
 
-The committed `.env.example` file provides the required configuration template.
+The `.env` file is ignored by Git. Never commit actual credentials or tokens.
 
-When running through Docker Compose, the API uses the PostgreSQL service name `db`:
+When running through Docker Compose, the API connects to PostgreSQL and Redis using their Compose service names. The Supabase environment variables are passed to the API container from `.env`.
+
+For Docker Compose, the database connection uses:
 
 ```text
-postgres://postgres:dev@db:5432/tasks
+postgres://postgres:your_password_here@db:5432/tasks
 ```
+
+The committed `.env.example` file provides the configuration template without exposing actual credentials.
 
 ---
 
 # **API Endpoints**
 
-| Method | Endpoint                  | Description                  | Status Codes  |
-| ------ | ------------------------- | ---------------------------- | ------------- |
-| GET    | `/`                       | API information              | 200           |
-| GET    | `/health`                 | Health check                 | 200           |
-| GET    | `/tasks`                  | Get all tasks                | 200           |
-| GET    | `/tasks?done=true`        | Get completed tasks          | 200           |
-| GET    | `/tasks?done=false`       | Get incomplete tasks         | 200           |
-| GET    | `/tasks?search=book`      | Search tasks by title        | 200           |
-| GET    | `/tasks?sort=title`       | Sort tasks alphabetically    | 200           |
-| GET    | `/tasks?limit=2&offset=0` | Paginate task results        | 200           |
-| GET    | `/tasks/:id`              | Get a task by ID             | 200, 404      |
-| POST   | `/tasks`                  | Create a task                | 201, 400      |
-| PUT    | `/tasks/:id`              | Update a task                | 200, 400, 404 |
-| DELETE | `/tasks/:id`              | Delete a task                | 204, 404      |
-| GET    | `/stats`                  | Get task statistics          | 200           |
-| POST   | `/reset`                  | Reset tasks to default state | 200           |
+| Method | Endpoint                  | Description                               | Status Codes  |
+| :----- | :------------------------ | :---------------------------------------- | :------------ |
+| GET    | `/`                       | API information                           | 200           |
+| GET    | `/health`                 | Health check                              | 200           |
+| POST   | `/auth/signup`            | Register a user with Supabase Auth        | 201, 400      |
+| POST   | `/auth/login`             | Authenticate a user and obtain tokens     | 200, 400, 401 |
+| POST   | `/auth/logout`            | Sign out an authenticated user            | 204, 401, 500 |
+| GET    | `/public/info`            | Retrieve public information               | 200           |
+| GET    | `/protected/profile`      | Retrieve the authenticated user's profile | 200, 401      |
+| GET    | `/protected/dashboard`    | Retrieve protected dashboard information  | 200, 401      |
+| GET    | `/tasks`                  | Get all tasks                             | 200           |
+| GET    | `/tasks?done=true`        | Get completed tasks                       | 200           |
+| GET    | `/tasks?done=false`       | Get incomplete tasks                      | 200           |
+| GET    | `/tasks?search=book`      | Search tasks by title                     | 200           |
+| GET    | `/tasks?sort=title`       | Sort tasks alphabetically                 | 200           |
+| GET    | `/tasks?limit=2&offset=0` | Paginate task results                     | 200           |
+| GET    | `/tasks/:id`              | Get a task by ID                          | 200, 404      |
+| POST   | `/tasks`                  | Create a task                             | 201, 400      |
+| PUT    | `/tasks/:id`              | Update a task                             | 200, 400, 404 |
+| DELETE | `/tasks/:id`              | Delete a task                             | 204, 404      |
+| GET    | `/stats`                  | Get task statistics                       | 200           |
+| POST   | `/reset`                  | Reset tasks to default state              | 200           |
+
+---
+
+## Authentication
+
+The API uses Supabase Auth for user registration and login. Protected endpoints require a valid Supabase access token sent through the HTTP `Authorization` header.
+
+### Signup
+
+```http
+POST /auth/signup
+Content-Type: application/json
+```
+
+Example request:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "your_password"
+}
+```
+
+A successful signup returns `201 Created`.
+
+### Login
+
+```http
+POST /auth/login
+Content-Type: application/json
+```
+
+Example request:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "your_password"
+}
+```
+
+A successful login returns an access token, refresh token, and user information.
+
+### Accessing a protected endpoint
+
+Include the access token in the `Authorization` header:
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Example:
+
+```bash
+curl -i http://localhost:3000/protected/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+A valid token allows access to the protected endpoint. Missing, malformed, invalid, or expired access tokens return `401 Unauthorized`.
+
+### Protected endpoints
+
+- `GET /protected/profile` returns the authenticated user's profile information.
+- `GET /protected/dashboard` returns protected dashboard information.
+
+### Logout
+
+```http
+POST /auth/logout
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+A successful logout returns `204 No Content`.
+
+Logging out does not necessarily make an already-issued access token immediately unusable. Its subsequent acceptance depends on the authentication provider's token-validation and revocation behavior.
+
+### Public endpoint
+
+`GET /public/info` is accessible without an access token.
+
+### Swagger Authorization
+
+Interactive API documentation is available at `/docs`. Use the **Authorize** button to supply your access token when testing protected endpoints.
+
+The OpenAPI specification documents which endpoints require authentication; the Express authentication middleware performs the actual token verification.
 
 ---
 
@@ -434,13 +553,16 @@ Content-Type: application/json
 
 ## **HTTP Status Codes**
 
-| Status Code | Meaning                       |
-| ----------- | ----------------------------- |
-| 200         | Successful request            |
-| 201         | Resource created              |
-| 204         | Resource deleted successfully |
-| 400         | Invalid request body          |
-| 404         | Task not found                |
+| Status Code | Meaning                                                  |
+| ----------- | -------------------------------------------------------- |
+| 200         | Successful request                                       |
+| 201         | Resource created                                         |
+| 204         | Resource deleted successfully                            |
+| 400         | Invalid request body                                     |
+| 404         | Task not found                                           |
+| 401         | Missing, invalid, or expired authentication token        |
+| 403         | Authenticated user is not permitted to access a resource |
+| 429         | Too many requests                                        |
 
 ---
 
@@ -453,6 +575,8 @@ http://localhost:3000/docs
 ```
 
 ![Swagger UI Screenshot](./assets/swagger.png)
+
+The OpenAPI specification documents authentication endpoints and Bearer token security for protected routes. Use the Authorize button to test authenticated requests.
 
 ---
 
