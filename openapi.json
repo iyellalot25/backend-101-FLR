@@ -23,6 +23,18 @@
     {
       "name": "Extras",
       "description": "Filtering, search, sorting, pagination, statistics, and reset functionality"
+    },
+    {
+      "name": "Authentication",
+      "description": "Signup, login, and logout using Supabase Auth"
+    },
+    {
+      "name": "Public",
+      "description": "Endpoints that do not require authentication"
+    },
+    {
+      "name": "Protected",
+      "description": "Endpoints requiring a valid Supabase access token"
     }
   ],
   "paths": {
@@ -471,6 +483,348 @@
           }
         }
       }
+    },
+    "/auth/signup": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Create an account",
+        "description": "Registers a user through Supabase Auth. Passwords are handled by Supabase and are not stored by this API.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthCredentials"
+              },
+              "example": {
+                "email": "test@example.com",
+                "password": "Test12345!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Signup successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Signup successful"
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Supabase user object"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Signup successful",
+                  "user": {
+                    "id": "user-id",
+                    "email": "test@example.com"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing input or Supabase signup error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email and password are required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Log in",
+        "description": "Authenticates credentials with Supabase Auth and returns access and refresh tokens.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthCredentials"
+              },
+              "example": {
+                "email": "test@example.com",
+                "password": "Test12345!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "access_token",
+                    "refresh_token",
+                    "user"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Supabase user object"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Login successful",
+                  "access_token": "eyJ...",
+                  "refresh_token": "eyJ...",
+                  "user": {
+                    "id": "user-id",
+                    "email": "test@example.com"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email or password missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email and password are required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials or login failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid login credentials"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Log out",
+        "description": "Signs out the authenticated Supabase session using the supplied access token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Logout successful; no response body"
+          },
+          "401": {
+            "description": "Missing, malformed, invalid, or expired access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid or expired token"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Logout failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Logout failed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/info": {
+      "get": {
+        "tags": ["Public"],
+        "summary": "Get public information",
+        "description": "Returns public information without requiring a bearer token.",
+        "responses": {
+          "200": {
+            "description": "Public information returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "authenticated": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "This is public information",
+                  "authenticated": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/protected/profile": {
+      "get": {
+        "tags": ["Protected"],
+        "summary": "Get authenticated user profile",
+        "description": "Validates the Supabase access token and returns selected user information.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user profile returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Authenticated successfully",
+                  "user": {
+                    "id": "user-id",
+                    "email": "test@example.com",
+                    "created_at": "2026-10-15T21:26:11.933967Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed, invalid, or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid or expired token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/protected/dashboard": {
+      "get": {
+        "tags": ["Protected"],
+        "summary": "Access protected dashboard",
+        "description": "Returns a simple dashboard response for an authenticated user.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard response returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user_id": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Welcome to your protected dashboard",
+                  "user_id": "user-id"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed, invalid, or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Missing or malformed authorization token"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -490,13 +844,7 @@
     "schemas": {
       "Task": {
         "type": "object",
-        "required": [
-          "id",
-          "title",
-          "done",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["id", "title", "done", "created_at", "updated_at"],
         "properties": {
           "id": {
             "type": "integer",
@@ -584,6 +932,31 @@
             "example": "Task not found"
           }
         }
+      },
+      "AuthCredentials": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "test@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 1,
+            "example": "Test12345!"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your Supabase access token. Swagger UI adds the Bearer prefix automatically."
       }
     }
   }
