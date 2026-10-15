@@ -2,6 +2,8 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const openapi = require("../openapi.json");
 const taskRoutes = require("./routes/taskRoutes");
+const publicRoutes = require("./routes/publicRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const notFound = require("./middleware/notFound");
 const { pool } = require("./repositories/database");
@@ -46,6 +48,12 @@ app.get("/health", async (req, res) => {
 
 // Auth routes
 app.use("/auth", authRoutes);
+
+// Public routes
+app.use("/public", publicRoutes);
+
+// Protected routes
+app.use("/protected", protectedRoutes);
 
 // Task routes
 app.use("/", taskRoutes);
