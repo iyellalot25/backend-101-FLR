@@ -1,6 +1,7 @@
 const express = require("express");
 const supabase = require("../config/supabase");
 const { createClient } = require("@supabase/supabase-js");
+const loginRateLimiter = require("../middleware/loginRateLimiter");
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ router.post("/signup", async (req, res) => {
 });
 
 // POST /auth/login
-router.post("/login", async (req, res) => {
+router.post("/login", loginRateLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
