@@ -1,5 +1,6 @@
 const express = require("express");
 const supabase = require("../config/supabase");
+const { createClient } = require("@supabase/supabase-js");
 
 const router = express.Router();
 
@@ -59,6 +60,52 @@ router.post("/login", async (req, res) => {
   });
 });
 
+// POST /auth/refresh
+router.post("/refresh", async (req, res) => {
+  const { refresh_token } = req.body;
+
+  if (!refresh_token || typeof refresh_token !== "string") {
+    return res.status(400).json({
+      error: "Refresh token is required",
+    });
+  }
+
+  try {
+    const userClient = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      },
+    );
+
+    const { data, error } = await userClient.auth.refreshSession({
+      refresh_token,
+    });
+
+    if (error || !data.session) {
+      return res.status(401).json({
+        error: "Invalid or expired refresh token",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      user: data.user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Unable to refresh session",
+    });
+  }
+});
+
 // POST /auth/logout
 router.post("/logout", async (req, res) => {
   const authHeader = req.headers.authorization;
@@ -84,8 +131,6 @@ router.post("/logout", async (req, res) => {
       error: "Invalid or expired token",
     });
   }
-
-  const { createClient } = require("@supabase/supabase-js");
 
   const userClient = createClient(
     process.env.SUPABASE_URL,
