@@ -55,6 +55,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many login attempts. Please try again in 15 minutes."
           }
         }
       }
@@ -825,6 +828,69 @@
           }
         }
       }
+    },
+
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Refresh access token",
+        "description": "Exchanges a refresh token for a new access token and refresh token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed refresh token"
+          },
+          "401": {
+            "description": "Invalid or expired refresh token"
+          },
+          "500": {
+            "description": "Unexpected refresh failure"
+          }
+        }
+      }
+    },
+
+    "/protected/admin": {
+      "get": {
+        "tags": ["Protected"],
+        "summary": "Admin-only endpoint",
+        "description": "Requires authentication and an authenticated user ID included in ADMIN_USER_IDS.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin access granted"
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token"
+          },
+          "403": {
+            "description": "Admin access required"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -947,6 +1013,32 @@
             "format": "password",
             "minLength": 1,
             "example": "Test12345!"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": ["refresh_token"],
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "description": "Supabase refresh token"
+          }
+        }
+      },
+      "AuthSession": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "description": "Authenticated Supabase user",
+            "additionalProperties": true
           }
         }
       }

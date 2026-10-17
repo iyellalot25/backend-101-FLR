@@ -362,6 +362,47 @@ Logging out does not necessarily make an already-issued access token immediately
 
 `GET /public/info` is accessible without an access token.
 
+### Admin-Only Route
+
+**Endpoint:** `GET /protected/admin`
+
+Requires a valid access token and an authenticated user ID listed in the `ADMIN_USER_IDS` environment variable.
+
+**Responses:**
+
+- `200 OK` — Admin access granted.
+- `401 Unauthorized` — Missing, invalid, or expired access token.
+- `403 Forbidden` — Authenticated user does not have admin access.
+
+Configure `ADMIN_USER_IDS` as a comma-separated list of authorized Supabase user IDs.
+
+### Refresh Token
+
+**Endpoint:** `POST /auth/refresh`
+
+Exchanges a valid refresh token for a new access token and refresh token.
+
+**Request body:**
+
+```json
+{
+  "refresh_token": "your_refresh_token"
+}
+```
+
+**Responses:**
+
+- `200 OK` — Returns the new access token, refresh token, and user.
+- `400 Bad Request` — Refresh token is missing or invalid in format.
+- `401 Unauthorized` — Refresh token is invalid or expired.
+- `500 Internal Server Error` — Unexpected refresh failure.
+
+### Login Rate Limiting
+
+The `POST /auth/login` endpoint is rate-limited to **5 requests per client IP within 15 minutes**.
+
+- `429 Too Many Requests` — The client has exceeded the login request limit.
+
 ### Swagger Authorization
 
 Interactive API documentation is available at `/docs`. Use the **Authorize** button to supply your access token when testing protected endpoints.
